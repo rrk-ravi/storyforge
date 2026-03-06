@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StoryStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id                         String      @id @default(cuid())
+  email                      String      @unique
+  name                       String
+  passwordHash               String
+  bio                        String?
+  role                       UserRole    @default(USER)
+  isEmailVerified            Boolean     @default(false)
+  emailVerificationTokenHash String?     @unique
+  emailVerificationExpiresAt DateTime?
+  passwordResetTokenHash     String?     @unique
+  passwordResetExpiresAt     DateTime?
+  createdAt                  DateTime    @default(now())
+  updatedAt                  DateTime    @updatedAt
+  stories                    Story[]
+  likes                      StoryLike[]
+  bookmarks                  Bookmark[]
+  comments                   Comment[]
+  moderatedStories           Story[]     @relation("StoryModeratedBy")
+  moderatedComments          Comment[]   @relation("CommentModeratedBy")
+
+  @@index([createdAt])
+}
+
+model Story {
+  id            String           @id @default(cuid())
+  authorId      String
+  title         String
+  slug          String           @unique
+  excerpt       String?
+  content       String
+  coverImageUrl String?
+  tags          String[]         @default([])
+  status        StoryStatus      @default(DRAFT)
+  moderationStatus ModerationStatus @default(PENDING)
+  moderationNote String?
+  moderatedById String?
+  moderatedAt   DateTime?
+  viewCount     Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  publishedAt   DateTime?
+  author        User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  moderatedBy   User?            @relation("StoryModeratedBy", fields: [moderatedById], references: [id], onDelete: SetNull)
+  likes         StoryLike[]
+  bookmarks     Bookmark[]
+  comments      Comment[]
+
+  @@index([authorId])
+  @@index([status, publishedAt])
+  @@index([moderationStatus])
+  @@index([createdAt])
+}
+
+model StoryLike {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  createdAt DateTime @default(now())
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@index([userId, createdAt])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  createdAt DateTime @default(now())
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@index([userId, createdAt])
+}
+
+model Comment {
+  id            String   @id @default(cuid())
+  storyId       String
+  userId        String
+  content       String
+  isHidden      Boolean  @default(false)
+  moderationNote String?
+  moderatedById String?
+  moderatedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  story         Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moderatedBy   User?    @relation("CommentModeratedBy", fields: [moderatedById], references: [id], onDelete: SetNull)
+
+  @@index([storyId, createdAt])
+  @@index([userId, createdAt])
+}
