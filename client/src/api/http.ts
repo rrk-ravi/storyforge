@@ -2,9 +2,16 @@ import axios from "axios";
 import type { ApiEnvelope } from "../types";
 
 const rawApiUrl = String(import.meta.env.VITE_API_URL || "").trim();
+const defaultProductionApiUrl = "https://storyforge-ixmd.onrender.com/api";
 
 const normalizeApiBaseUrl = (value: string): string => {
   if (!value) {
+    if (globalThis.window !== undefined) {
+      const hostname = globalThis.window.location.hostname;
+      const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1";
+      return isLocalHost ? "/api" : defaultProductionApiUrl;
+    }
+
     return "/api";
   }
 
