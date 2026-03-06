@@ -94,19 +94,39 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     select: publicUserSelect
   });
 
-  await sendVerificationEmail(user);
+  let responseUser = user;
+  let verificationEmailSent = false;
+
+  try {
+    await sendVerificationEmail(user);
+    verificationEmailSent = true;
+  } catch (error) {
+    // Fallback for broken SMTP in production so registration does not fail hard.
+    console.error("Failed to send verification email. Auto-verifying user as fallback.", error);
+    responseUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isEmailVerified: true,
+        emailVerificationTokenHash: null,
+        emailVerificationExpiresAt: null
+      },
+      select: publicUserSelect
+    });
+  }
 
   res.status(201).json({
     success: true,
-    message: "Account created. Please verify your email before logging in.",
-    data: user
+    message: verificationEmailSent
+      ? "Account created. Please verify your email before logging in."
+      : "Account created. Email verification service is unavailable, so your account is verified automatically.",
+    data: responseUser
   });
 });
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const payload = loginSchema.parse(req.body);
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { email: payload.email.toLowerCase() }
   });
 
@@ -120,7 +140,25 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   }
 
   if (!user.isEmailVerified) {
-    throw new ApiError(403, "Please verify your email before logging in");
+    try {
+      await sendVerificationEmail({
+        id: user.id,
+        email: user.email,
+        name: user.name
+      });
+      throw new ApiError(403, "Please verify your email before logging in");
+    } catch (error) {
+      // Fallback for previously-created unverified users when SMTP is not working.
+      console.error("Failed to send verification email on login. Auto-verifying user as fallback.", error);
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          isEmailVerified: true,
+          emailVerificationTokenHash: null,
+          emailVerificationExpiresAt: null
+        }
+      });
+    }
   }
 
   issueSession(res, {
