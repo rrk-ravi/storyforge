@@ -129,9 +129,9 @@ const decorateStoriesWithEngagement = async <T extends { id: string }>(
       : Promise.resolve([])
   ]);
 
-  const likeMap = new Map(likeGroups.map((item) => [item.storyId, item._count._all]));
-  const commentMap = new Map(commentGroups.map((item) => [item.storyId, item._count._all]));
-  const bookmarkMap = new Map(bookmarkGroups.map((item) => [item.storyId, item._count._all]));
+  const likeMap = new Map<string, number>(likeGroups.map((item) => [item.storyId, item._count._all]));
+  const commentMap = new Map<string, number>(commentGroups.map((item) => [item.storyId, item._count._all]));
+  const bookmarkMap = new Map<string, number>(bookmarkGroups.map((item) => [item.storyId, item._count._all]));
   const myLikeSet = new Set(myLikes.map((item) => item.storyId));
   const myBookmarkSet = new Set(myBookmarks.map((item) => item.storyId));
 
