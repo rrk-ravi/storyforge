@@ -6,7 +6,7 @@ services:
     rootDir: server
     region: oregon
     healthCheckPath: /api/health
-    buildCommand: npm install --legacy-peer-deps --include=dev && npx prisma generate && npm run build --workspace server && npx prisma migrate deploy --skip-generate
+    buildCommand: npm install --legacy-peer-deps --include=dev && npx prisma generate && npm run build --workspace server && npx prisma migrate deploy
     startCommand: npm run start
     envVars:
       - key: NODE_VERSION
