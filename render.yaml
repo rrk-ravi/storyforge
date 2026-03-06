@@ -6,7 +6,7 @@ services:
     rootDir: server
     region: oregon
     healthCheckPath: /api/health
-    buildCommand: npm install && npx prisma generate && npm run build && npx prisma migrate deploy
+    buildCommand: npm install --workspaces && npm run prisma:generate && npm run build --workspace server && npm run prisma:deploy
     startCommand: npm run start
     envVars:
       - key: NODE_VERSION
