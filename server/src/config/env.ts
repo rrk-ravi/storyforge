@@ -23,7 +23,13 @@ const optionalPort = z.preprocess(
   },
   z.number().int().positive().optional()
 );
-const optionalEmail = z.preprocess(emptyToUndefined, z.email().optional());
+const optionalMailFrom = z.preprocess(
+  emptyToUndefined,
+  z
+    .string()
+    .refine((value) => value.includes("@"), "SMTP_FROM must be an email or Name <email>")
+    .optional()
+);
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -32,13 +38,13 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(24, "JWT_SECRET must be at least 24 characters"),
   JWT_EXPIRES_IN: z.string().default("7d"),
   CLIENT_ORIGIN: z.url(),
-  APP_BASE_URL: z.url().default("http://localhost:5173"),
+  APP_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
   SMTP_HOST: optionalString,
   SMTP_PORT: optionalPort,
   SMTP_USER: optionalString,
   SMTP_PASS: optionalString,
-  SMTP_FROM: optionalEmail,
+  SMTP_FROM: optionalMailFrom,
   CLOUDINARY_CLOUD_NAME: optionalString,
   CLOUDINARY_API_KEY: optionalString,
   CLOUDINARY_API_SECRET: optionalString
@@ -52,3 +58,7 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+if (!env.APP_BASE_URL) {
+  env.APP_BASE_URL = env.CLIENT_ORIGIN;
+}

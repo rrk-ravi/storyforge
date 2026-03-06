@@ -117,6 +117,19 @@ textarea {
   min-height: 74px;
 }
 
+.topbar__menu-toggle {
+  display: none;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 0.42rem;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+}
+
 .brand {
   display: flex;
   flex-direction: column;
@@ -139,6 +152,10 @@ textarea {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.55rem;
+}
+
+.topnav--open {
+  display: flex;
 }
 
 .topnav__link,
@@ -676,11 +693,43 @@ button:disabled {
 
 @media (max-width: 640px) {
   .topbar__inner {
-    min-height: 68px;
+    min-height: 64px;
+    flex-wrap: wrap;
+    padding-block: 0.5rem;
   }
 
   .brand__sub {
     display: none;
+  }
+
+  .brand__mark {
+    font-size: 1.15rem;
+  }
+
+  .topbar__menu-toggle {
+    display: inline-flex;
+  }
+
+  .topnav {
+    display: none;
+    width: 100%;
+    align-items: stretch;
+    gap: 0.45rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .topnav--open {
+    display: flex;
+    animation: riseIn 160ms ease-out both;
+  }
+
+  .topnav__link,
+  .topnav__button,
+  .topnav__logout {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 0.62rem 0.95rem;
   }
 
   .hero {

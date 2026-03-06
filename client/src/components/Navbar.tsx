@@ -1,13 +1,21 @@
-import { PenLine } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Menu, PenLine, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
 export const Navbar = () => {
   const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
+    setMobileMenuOpen(false);
     navigate("/");
   };
 
@@ -19,7 +27,17 @@ export const Navbar = () => {
           <span className="brand__sub">Create stories that travel.</span>
         </Link>
 
-        <nav className="topnav">
+        <button
+          type="button"
+          className="topbar__menu-toggle"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
+        <nav className={`topnav ${mobileMenuOpen ? "topnav--open" : ""}`}>
           <NavLink to="/" className="topnav__link">
             Discover
           </NavLink>
