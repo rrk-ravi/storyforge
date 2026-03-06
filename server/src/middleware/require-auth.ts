@@ -7,7 +7,7 @@ const clearAuthCookie = (res: Response): void => {
   res.clearCookie("accessToken", {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
-    sameSite: "lax"
+    sameSite: env.NODE_ENV === "production" ? "none" : "lax"
   });
 };
 
