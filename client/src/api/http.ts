@@ -1,7 +1,26 @@
 import axios from "axios";
 import type { ApiEnvelope } from "../types";
 
-const baseURL = import.meta.env.VITE_API_URL || "/api";
+const rawApiUrl = String(import.meta.env.VITE_API_URL || "").trim();
+
+const normalizeApiBaseUrl = (value: string): string => {
+  if (!value) {
+    return "/api";
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    const withoutTrailingSlash = value.replace(/\/+$/, "");
+    return withoutTrailingSlash.endsWith("/api")
+      ? withoutTrailingSlash
+      : `${withoutTrailingSlash}/api`;
+  }
+
+  const prefixed = value.startsWith("/") ? value : `/${value}`;
+  const withoutTrailingSlash = prefixed.replace(/\/+$/, "");
+  return withoutTrailingSlash || "/api";
+};
+
+const baseURL = normalizeApiBaseUrl(rawApiUrl);
 
 export const http = axios.create({
   baseURL,
