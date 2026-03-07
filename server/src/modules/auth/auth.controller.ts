@@ -270,7 +270,14 @@ export const resendVerification = asyncHandler(async (req: Request, res: Respons
   });
 
   if (user && !user.isEmailVerified) {
-    await sendVerificationEmail(user);
+    try {
+      await sendVerificationEmail(user);
+    } catch (error) {
+      console.error("Failed to resend verification email", {
+        email: user.email,
+        error
+      });
+    }
   }
 
   res.json({
@@ -306,12 +313,19 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
 
     const resetUrl = `${env.APP_BASE_URL}/reset-password?token=${encodeURIComponent(rawToken)}`;
 
-    await sendEmail({
-      to: user.email,
-      subject: "Reset your StoryForge password",
-      text: `Hi ${user.name}, reset your password: ${resetUrl}`,
-      html: `<p>Hi ${user.name},</p><p>Use the link below to reset your password:</p><p><a href="${resetUrl}">Reset Password</a></p>`
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your StoryForge password",
+        text: `Hi ${user.name}, reset your password: ${resetUrl}`,
+        html: `<p>Hi ${user.name},</p><p>Use the link below to reset your password:</p><p><a href="${resetUrl}">Reset Password</a></p>`
+      });
+    } catch (error) {
+      console.error("Failed to send password reset email", {
+        email: user.email,
+        error
+      });
+    }
   }
 
   res.json({
